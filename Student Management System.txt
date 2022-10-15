@@ -1,0 +1,322 @@
+#include<iostream>
+#include<iomanip>
+#include<cstring>
+using namespace std;
+
+void addrecord();
+void showall();
+void search();
+void delete();
+void viewdeleted();
+void restore();
+void modify();
+
+ class student{
+int rolln;
+int age;
+int std;
+char gender;
+char name[10];
+int fees;
+public:
+int getroll(){
+    return rolln;
+}
+char* getname(){
+    return name;
+}
+student(){ //default cons
+    rolln=0;
+    strcpy(name,"NA");
+    gender='x';
+    age=0;
+    std=0;
+}
+student(int rn, char nm[10], char g,int a, int sd ){ //parameterized cons
+    rolln=rn;
+    strcpy(name,nm);
+    gender=g;
+    age=a;
+    std=sd;
+}
+void getdata(){
+    cout<<"ENTER INFORMATION"<<endl;
+    cin>>rolln;
+    cin.ignore();
+    cin.getline(name,10);
+    cin>>age;
+    cin>>gender;
+    cin>>std;
+}
+void moddata(){
+    cout<<rolln<<endl;;
+    cout<<"ENTER NEW INFORMATION"<<endl;
+    cin.ignore();
+    cin.getline(name,10);
+    cin>>age;
+    cin>>gender;
+    cin>>std;
+
+}
+
+void charge(){
+    if(age<15){
+        fees=10;
+    }
+    else{
+        fees=15;
+    }
+}
+void showdata(){
+    cout<<"STUDENT INFORMATION"<<endl;
+    cout<<rolln<<endl;
+    cout<<name<<endl;
+    cout<<age<<endl;
+    cout<<gender<<endl;
+    cout<<std<<endl;
+    charge();
+    cout<<fees<<endl;
+}
+void listing(){
+    cout.setf(ios::left);
+    cout<<setw(10)<<rolln;
+    cout<<setw(20)<<name;
+    cout<<setw(10)<<gender;
+    cout<<setw(5)<<age;
+    cout<<setw(10)<<std;
+    charge();
+    cout<<setw(5)<<fees;
+    cout<<endl;
+}
+
+}s;
+void menu(){
+    cout<<"0-exit\n";
+    cout<<"1-entry\n";
+    cout<<"2-show\n";
+    cout<<"3-sraech by roll\n";
+    cout<<"4-delete \n";
+    cout<<"5-view deleted\n";
+    cout<<"6-restore\n";
+    cout<<"7-modify\n";
+    cout<<"0-exit\n";
+}
+void heading(){
+    cout.setf(ios::left);
+    cout<<setw(10)<<"Roll no. ";
+    cout<<setw(20)<<"NAME ";
+    cout<<setw(10)<<"Gender ";
+    cout<<setw(5)<<"Age ";
+    cout<<setw(5)<<"Standerd ";
+    cout<<setw(5)<<"Fees";
+    cout<<endl;
+}
+void addrecord(){
+    ofstream fout;
+    fout.open("studata.",ios::out|ios::app|ios::binary);
+    s.getdata();
+    fout.write((char*)&s,sizeof(s));
+    fout.close();
+    cout<<"\n data saved to file\n";
+}
+void showall(){
+    ifstream fin;
+    fin.open("studata.bin",ios::in|ios::binary);
+    heading();
+    while(fin.read((char*)&s,sizeof(s))){
+        s.showdata();
+    }
+    fin.close();
+}
+void search(){
+    ifstream fin;
+    fin.open("studata.bin",ios::in|ios::binary);
+    int rn,f=0;
+    cout<<"enter roll";
+    cin>>rn;
+    
+    while(fin.read((char*)&s,sizeof(s))){
+        if(rn==s.getroll()){
+            s.showdata();
+            f++;
+        }
+    }
+    fin.close();
+    if(f==0){
+        cout<<"\nnot found\n";
+          }
+}
+void delete(){
+    ifstream fin;
+    fin.open("studata.bin",ios::in|ios::binary);
+    ofstream fout1("temp.bin");
+    ofstream fout2("trashes.bin",ios::app)
+    int rn,f=0;
+    cout<<"enter roll";
+    cin>>rn;
+    
+    while(fin.read((char*)&s,sizeof(s))){
+        if(rn==s.getroll()){
+            cout<<"following data moved to trash\n";
+            s.showdata();
+            f++;
+            fout2.write((char*)&s,sizeof(s)));
+        }
+        else{
+            fout1.write((char*)&s,sizeof(s)));
+        }
+    }
+    fin.close();
+    fout1.close();
+    fout2.close();
+    if(f==0){
+        cout<<"\nnot found\n";
+    }
+    remove("studata.bin");
+    rename("temp.bin","studata.bin");
+}
+void viewdeleted(){
+    ifstream fin;
+    fin.open("trashes.bin",ios::in|ios::binary);
+    cout<<"TRASH DATA\n";
+    heading();
+    while(fin.read((char*)&s,sizeof(s))){
+        s.showdata();
+    }
+    fin.close();
+}
+void restore(){
+     ifstream fin;
+    fin.open("trashes.bin",ios::in|ios::binary);
+    ofstream fout1("temp.bin");
+    ofstream fout2("studata.bin",ios::app)
+    int rn,f=0;
+    cout<<"enter roll";
+    cin>>rn;
+    
+    while(fin.read((char*)&s,sizeof(s))){
+        if(rn==s.getroll()){
+            cout<<"following data restored from trash\n";
+            s.showdata();
+            f++;
+            fout2.write((char*)&s,sizeof(s)));
+        }
+        else{
+            fout1.write((char*)&s,sizeof(s)));
+        }
+    }
+    fin.close();
+    fout1.close();
+    fout2.close();
+    if(f==0){
+        cout<<"\nnot found\n";
+    }
+    remove("trashes.bin");
+    rename("temp.bin","trashes.bin");
+}
+void modify(){
+    fstream fio;
+    fio.open("studata.bin",ios::in|ios::out|ios::binary);
+    int rn,f=0,pos;
+    cout<<"enter roll";
+    cin>>rn;
+    
+    while(fio.read((char*)&s,sizeof(s))){
+        if(rn==s.getroll()){
+            pos=fio.tellg(); //return curr pos
+            cout<<"data found to be updated\n";
+            s.showdata();
+            cout<<"enter new record\n";
+            fio.seekg(pos-sizeof(s));   //first went to the begining of data thus update
+            s.getdata();
+            fio.write((char*)&s,sizeof(s)));
+            f++;
+        }
+    }
+    fio.close();
+    if(f==0){
+        cout<<"\nnot found\n";
+          }
+}
+int main(){
+    int n=0,ch,rn,f=0,pos;
+    char nm[10];
+    student s[10];
+    do{
+        system("cls");
+        menu();
+        cin>>ch;
+        switch(ch)
+        {
+case 1:     addrecord();
+           // n++;
+break;
+case 2:    showall();
+           
+break;
+case 3:    search();
+            
+break;
+case 4:    delete();
+            
+           
+break;
+case 5:   viewdeleted();
+         /* if(n>0){
+            cout<<"enter roll no.";
+            cin>>rn;
+          
+            for(int i=0; i<n;i++){
+                if(rn==s[i].getroll()){
+                    s[i].moddata();
+                    count3++;
+                }       
+            }
+            if(count3==0){
+                    cout<<"\nnot found\n";
+                }
+           }
+           else{
+            cout<<"\nempty\n";
+           }
+           count3=0;*/
+break;
+case 6:   viewdeleted();  //displaying data store at trash and from those recods which roll you want to restore
+           restore();
+           /* if(n>0){
+            cout<<"enter roll no.";
+            cin>>rn;
+          
+            for(int i=0; i<n;i++){
+                if(rn==s[i].getroll()){
+                    cout<<"all records of roll no."<<s[i].getroll()<<" is deleted\n ";
+                   pos=i;
+                    count4++;
+                }       
+            }
+            
+            if(count4==0){
+                    cout<<"\nnot found\n";
+                }
+                else{
+                    for(int i=pos; i<n-1;i++){
+                        s[i]=s[i+1];
+                    }
+                    n--;
+                }
+           }
+           else{
+            cout<<"\nempty\n";
+           }
+           count4=0;*/
+break;
+case 7:  modify();
+break;
+        }
+        system("pause");
+    }while(ch);
+    
+ 
+    
+    return 0;
+}
